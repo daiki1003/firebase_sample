@@ -1,8 +1,5 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:http/http.dart' as http;
+import 'package:firebase_auth/firebase_auth.dart';
 
 void main() {
   runApp(MyApp());
@@ -47,27 +44,13 @@ class _MyHomePageState extends State<MyHomePage> {
 
       _form.currentState.save();
 
-      const GOOGLE_API_KEY = 'YOUR_KEY_HERE';
+      final auth = FirebaseAuth.instance;
       if (_isLogin) {
-        final url =
-            'https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=$GOOGLE_API_KEY';
-        final response = await http.post(url,
-            body: json.encode({
-              'email': _email,
-              'password': _password,
-              'returnSecureToken': true,
-            }));
-        print(json.decode(response.body));
+        final result = await auth.signInWithEmailAndPassword(email: _email, password: _password);
+        print(result.user.uid);
       } else {
-        final url =
-            'https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=$GOOGLE_API_KEY';
-        final response = await http.post(url,
-            body: json.encode({
-              'email': _email,
-              'password': _password,
-              'returnSecureToken': true,
-            }));
-        print(json.decode(response.body));
+        final result = await auth.createUserWithEmailAndPassword(email: _email, password: _password);
+        print(result.user.uid);
       }
     }
 
