@@ -1,29 +1,34 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:apple_sign_in/apple_sign_in.dart';
 
 class AuthScreen extends StatelessWidget {
-    final _passwordFocusNode = FocusNode();
-    final _form = GlobalKey<FormState>();
-    String _email;
-    String _password;
-    bool _isLogin = false;
+  void logIn() async {
+    final AuthorizationResult result = await AppleSignIn.performRequests([
+      AppleIdRequest(requestedScopes: [Scope.email, Scope.fullName])
+    ]);
 
-    Future<void> trySubmit() async {
-      if (!_form.currentState.validate()) {
-        return;
-      }
+    switch (result.status) {
+      case AuthorizationStatus.authorized:
+        print('success');
+        OAuthProvider oauthProvider = OAuthProvider(providerId: 'apple.com');
+        final credential = oauthProvider.getCredential(
+          idToken: String.fromCharCodes(result.credential.identityToken),
+          accessToken:
+              String.fromCharCodes(result.credential.authorizationCode),
+        );
+        FirebaseAuth.instance.signInWithCredential(credential);
+        break;
 
-      _form.currentState.save();
+      case AuthorizationStatus.error:
+        print("error: ${result.error.localizedDescription}");
+        break;
 
-      final auth = FirebaseAuth.instance;
-      if (_isLogin) {
-        final result = await auth.signInWithEmailAndPassword(email: _email, password: _password);
-        print(result.user.uid);
-      } else {
-        final result = await auth.createUserWithEmailAndPassword(email: _email, password: _password);
-        print(result.user.uid);
-      }
+      case AuthorizationStatus.cancelled:
+        print('cancelled');
+        break;
     }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -31,49 +36,9 @@ class AuthScreen extends StatelessWidget {
       appBar: AppBar(
         title: Text('Authentication'),
       ),
-      body: Form(
-        key: _form,
-        child: Column(
-          children: <Widget>[
-            TextFormField(
-              decoration: InputDecoration(labelText: 'email'),
-              textInputAction: TextInputAction.next,
-              validator: (value) {
-                if (value.isEmpty) {
-                  return 'Please provide a value.';
-                }
-                if (!value.contains('@')) {
-                  return 'Please enter a valid email address.';
-                }
-                return null;
-              },
-              onFieldSubmitted: (_) {
-                FocusScope.of(context).requestFocus(_passwordFocusNode);
-              },
-              onSaved: (value) {
-                _email = value;
-              },
-            ),
-            TextFormField(
-              decoration: InputDecoration(labelText: 'password'),
-              obscureText: true,
-              focusNode: _passwordFocusNode,
-              validator: (value) {
-                if (value.isEmpty) {
-                  return 'Please enter a password.';
-                }
-                return null;
-              },
-              onSaved: (value) {
-                _password = value;
-              },
-            ),
-            FlatButton(
-              child: Text('Save'),
-              color: Colors.grey,
-              onPressed: trySubmit,
-            ),
-          ],
+      body: Center(
+        child: AppleSignInButton(
+          onPressed: logIn,
         ),
       ),
     );
