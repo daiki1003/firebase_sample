@@ -1,30 +1,24 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_facebook_login/flutter_facebook_login.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:apple_sign_in/apple_sign_in.dart';
 
 class AuthScreen extends StatelessWidget {
+  static final facebookLogin = FacebookLogin();
   void logIn() async {
-    final AuthorizationResult result = await AppleSignIn.performRequests([
-      AppleIdRequest(requestedScopes: [Scope.email, Scope.fullName])
-    ]);
+    final result = await facebookLogin.logIn(['email']);
 
     switch (result.status) {
-      case AuthorizationStatus.authorized:
-        print('success');
-        OAuthProvider oauthProvider = OAuthProvider(providerId: 'apple.com');
-        final credential = oauthProvider.getCredential(
-          idToken: String.fromCharCodes(result.credential.identityToken),
-          accessToken:
-              String.fromCharCodes(result.credential.authorizationCode),
-        );
-        FirebaseAuth.instance.signInWithCredential(credential);
+      case FacebookLoginStatus.loggedIn:
+        final credential = FacebookAuthProvider.getCredential(
+            accessToken: result.accessToken.token);
+        final authResult =
+            await FirebaseAuth.instance.signInWithCredential(credential);
+        print(authResult.user.uid);
         break;
-
-      case AuthorizationStatus.error:
-        print("error: ${result.error.localizedDescription}");
+      case FacebookLoginStatus.error:
+        print('error, ${result.errorMessage}');
         break;
-
-      case AuthorizationStatus.cancelled:
+      case FacebookLoginStatus.cancelledByUser:
         print('cancelled');
         break;
     }
@@ -37,8 +31,9 @@ class AuthScreen extends StatelessWidget {
         title: Text('Authentication'),
       ),
       body: Center(
-        child: AppleSignInButton(
+        child: FlatButton(
           onPressed: logIn,
+          child: Text('login'),
         ),
       ),
     );

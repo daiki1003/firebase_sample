@@ -18,8 +18,39 @@
 	<string>$(FLUTTER_BUILD_NAME)</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>fb123456789</string>
+			</array>
+		</dict>
+	</array>
 	<key>CFBundleVersion</key>
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
+	<key>FacebookAppID</key>
+	<string>123456789</string>
+	<key>FacebookDisplayName</key>
+	<string>firebase_sample</string>
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>fbapi</string>
+		<string>fbapi123456789</string>
+		<string>fbapi123456789</string>
+		<string>fbapi123456789</string>
+		<string>fbapi123456789</string>
+		<string>fbapi123456789</string>
+		<string>fbapi123456789</string>
+		<string>fbapi123456789</string>
+		<string>fbapi123456789</string>
+		<string>fbapi123456789</string>
+		<string>fbapi123456789</string>
+		<string>fbauth</string>
+		<string>fb-messenger-share-api</string>
+		<string>fbauth2</string>
+		<string>fbshareextension</string>
+	</array>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>UILaunchStoryboardName</key>
