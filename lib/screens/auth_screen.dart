@@ -1,27 +1,24 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_facebook_login/flutter_facebook_login.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class AuthScreen extends StatelessWidget {
-  static final facebookLogin = FacebookLogin();
-  void logIn() async {
-    final result = await facebookLogin.logIn(['email']);
+  static final googleLogin = GoogleSignIn(scopes: [
+    'email',
+    'https://www.googleapis.com/auth/contacts.readonly',
+  ]);
 
-    switch (result.status) {
-      case FacebookLoginStatus.loggedIn:
-        final credential = FacebookAuthProvider.getCredential(
-            accessToken: result.accessToken.token);
-        final authResult =
-            await FirebaseAuth.instance.signInWithCredential(credential);
-        print(authResult.user.uid);
-        break;
-      case FacebookLoginStatus.error:
-        print('error, ${result.errorMessage}');
-        break;
-      case FacebookLoginStatus.cancelledByUser:
-        print('cancelled');
-        break;
-    }
+  void logIn() async {
+    GoogleSignInAccount signinAccount = await googleLogin.signInSilently();
+    if (signinAccount == null) signinAccount = await googleLogin.signIn();
+    if (signinAccount == null) return;
+
+    GoogleSignInAuthentication auth = await signinAccount.authentication;
+    final credential = GoogleAuthProvider.getCredential(
+      idToken: auth.idToken,
+      accessToken: auth.accessToken,
+    );
+    FirebaseAuth.instance.signInWithCredential(credential);
   }
 
   @override
